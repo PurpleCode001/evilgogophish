@@ -427,7 +427,7 @@ letsEncrypt() {
 	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
 	cp /etc/letsencrypt/live/$domain/fullchain.pem /opt/evilgogophish/domain.crt &&
 	sed -i 's!false!true!g' /opt/evilgogophish/config.json &&
-	sed -i 's!:80!:443!g' /opt/evilgogophish/config.json &&
+	sed -i 's!:80!:8443!g' /opt/evilgogophish/config.json &&
 	sed -i 's!example.crt!domain.crt!g' /opt/evilgogophish/config.json &&
 	sed -i 's!example.key!domain.key!g' /opt/evilgogophish/config.json &&
 	sed -i 's!gophish_admin.crt!domain.crt!g' /opt/evilgogophish/config.json &&
