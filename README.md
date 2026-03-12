@@ -1,7 +1,7 @@
 <p align="center">
   <img width="400" height="550" alt="imagen" src="https://github.com/user-attachments/assets/a5dd7bb7-306c-428e-bd11-8f557e237439" />
 
-  <h1 align="center">evilgogophish v1.0</h1>
+  <h1 align="center">evilgogophish v1.1 BAIT VERSION</h1>
 </p>
 
 A quick Bash script to automate the [Gophish](https://github.com/gophish/gophish) installation + LetsEncrypt your phishing domain.
@@ -50,7 +50,7 @@ ___________________________________________/\/\/\/\_____________________________
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v1.0
+   <===  |=== | --------------------------------v1.1 (BAIT VERSION)
        \ |   \|
         \|
 
