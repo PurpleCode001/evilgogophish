@@ -1,5 +1,6 @@
 <p align="center">
-  <img width="896" height="1195" alt="imagen" src="https://github.com/user-attachments/assets/e73bfefc-5bed-443d-aad7-c36bbe47acb4" />
+  <img width="400" height="550" alt="imagen" src="https://github.com/user-attachments/assets/a5dd7bb7-306c-428e-bd11-8f557e237439" />
+
   <h1 align="center">evilgogophish v1.0</h1>
 </p>
 
