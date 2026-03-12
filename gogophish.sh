@@ -1,16 +1,16 @@
 #!/bin/bash
 
 <<com
-# Version         : 0.1.3
-# Created date    : 12/09/2019
-# Last update     : 03/22/2023
-# Author          : bigb0ss
-# Description     : Automated script to install Gophish and configure SSL certificate with certbot
+# Version         : 1.0
+# Last update     : 03/12/2026
+# Author          : PSDT - PurpleCode
+# Description     : Automated script to install EvilgoGoPhish and configure SSL certificate with certbot, compatible with Evilginx 3.3.0+
 # Release Note    : 
-	09/20/20: 
-		- Gophish admin password is not longer static. Added function to grab the temporary password for the initial login. 
-	03/22/23:
-		- Updated the script to simply git clone the source and build the source 
+	03/12/26:
+		- Updated to EvilgoGoPhish v1.0
+		- Changed default port from 3333 to 8443
+		- Install ultimate version go with snap
+		- Updated author information
 	  
 com
 
@@ -27,18 +27,20 @@ clear=`tput sgr0`;
 banner() {
 cat <<EOF
 ${blue}${bold}
-	                          _     _     _
-                                 | |   (_)   | |
-     __ _  ___   __ _  ___  _ __ | |__  _ ___| |__
-    / _\` |/ _ \ / _\` |/ _ \| '_ \| '_ \| / __| '_ \\
-   | (_| | (_) | (_| | (_) | |_) | | | | \__ \ | | |
-    \__, |\___/ \__, |\___/| .__/|_| |_|_|___/_| |_|
-     __/ |       __/ |     | |           [bigb0ss]
-    |___/       |___/      |_|
+                      
+
+--[[
+_/\/\/\/\/\/\______________/\/\____/\/\______________________________/\/\/\/\/\______________/\/\/\/\/\____/\/\________/\/\________________/\/\___________
+_/\____________/\/\__/\/\__________/\/\______/\/\/\/\____/\/\/\____/\/\____________/\/\/\____/\/\____/\/\__/\/\__________________/\/\/\/\__/\/\___________
+_/\/\/\/\/\____/\/\__/\/\__/\/\____/\/\____/\/\__/\/\__/\/\__/\/\__/\/\__/\/\/\__/\/\__/\/\__/\/\/\/\/\____/\/\/\/\____/\/\____/\/\/\/\____/\/\/\/\_______
+_/\/\____________/\/\/\____/\/\____/\/\______/\/\/\/\__/\/\__/\/\__/\/\____/\/\__/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\_____
+_/\/\/\/\/\/\______/\______/\/\/\__/\/\/\________/\/\____/\/\/\______/\/\/\/\/\____/\/\/\____/\/\__________/\/\__/\/\__/\/\/\__/\/\/\/\____/\/\__/\/\_____
+___________________________________________/\/\/\/\_______________________________________________________________________________________________________
+--]]                                                                                              [PSDT - PurpleCode]
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v0.1.3
+   <===  |=== | --------------------------------v1.0
        \ |   \|
         \|
 ${clear}
@@ -57,18 +59,18 @@ usage() {
   banner
   cat <<EOF
 
-A quick Bash script to install GoPhish server. 
+A quick Bash script to install EvilgoGoPhish server. 
 
 ${bold}Usage: ${blue}./$(basename $0) [-r <rid name>] [-e] [-s] [-d <domain name> ] [-c] [-h]${clear}
 
 One shot to set up:
-  - Gophish Server (Email Phishing Ver.)
-  - Gophish Server (SMS Phishing Ver.)
+  - EvilgoGoPhish Server (Email Phishing Ver.)
+  - EvilgoGoPhish Server (SMS Phishing Ver.)
   - SSL Cert for Phishing Domain (LetsEncrypt)
 
 Options:
-  -e 			Setup Email Phishing Gophish Server
-  -s 			Setup SMS Phishing Gophish Server
+  -e 			Setup Email Phishing EvilgoGoPhish Server
+  -s 			Setup SMS Phishing EvilgoGoPhish Server
   -r <rid name>		Configure custom "rid=" parameter for landing page (e.g., https://example.com?rid={{.RID}})
 			If not specified, the default value would be "secure_id="
   -d <domain name>      SSL cert for phishing domain
@@ -77,13 +79,13 @@ Options:
   -h              	This help menu
 
 Examples:
-  ./$(basename $0) -e					Setup Email Phishing Gophish
-  ./$(basename $0) -s					Setup SMS Phishing Gophish
-  ./$(basename $0) -r <rid name> -e 			Setup Email Phishing Gophish + Your choice of rid
-  ./$(basename $0) -r <rid name> -s			Setup SMS Phishing Gophish + Your choice of rid
+  ./$(basename $0) -e					Setup Email Phishing EvilgoGoPhish
+  ./$(basename $0) -s					Setup SMS Phishing EvilgoGoPhish
+  ./$(basename $0) -r <rid name> -e 			Setup Email Phishing EvilgoGoPhish + Your choice of rid
+  ./$(basename $0) -r <rid name> -s			Setup SMS Phishing EvilgoGoPhish + Your choice of rid
   ./$(basename $0) -d <domain name>			Configure SSL cert for your phishing Domain
-  ./$(basename $0) -e -d <domain name>			Email Phishing Gophish + SSL cert for Phishing Domain
-  ./$(basename $0) -r <rid name> -e -d <domain name> 	Email Phishing Gophish + SSL cert + rid 
+  ./$(basename $0) -e -d <domain name>			Email Phishing EvilgoGoPhish + SSL cert for Phishing Domain
+  ./$(basename $0) -r <rid name> -e -d <domain name> 	Email Phishing EvilgoGoPhish + SSL cert + rid 
 
 EOF
 
@@ -101,7 +103,7 @@ exit_error() {
 dependencyCheck() {
 	### Update Sources
 	echo "${blue}${bold}[INFO] Updating OS source lists...${clear}"
-	apt-get update -y >/dev/null 2>&1	
+	apt update -y >/dev/null 2>&1	
 
 
 	### Checking/Installing unzip
@@ -112,7 +114,7 @@ dependencyCheck() {
 		echo "${green}${bold}[INFO] Unzip already installed${clear}"
 	else
 		echo "${blue}${bold}[INFO] Installing unzip...${clear}"
-		apt-get install unzip -y >/dev/null 2>&1
+		apt install unzip -y >/dev/null 2>&1
 	fi
 
 	### Checking/Installing go
@@ -123,7 +125,7 @@ dependencyCheck() {
                 echo "${green}${bold}[INFO] Golang already installed${clear}"
         else
                 echo "${blue}${bold}[INFO] Installing Golang...${clear}"
-                apt-get install golang -y >/dev/null 2>&1
+                snap install go --classic >/dev/null 2>&1
         fi
 	
 	### Checking/Installing git
@@ -134,7 +136,7 @@ dependencyCheck() {
                 echo "${green}${bold}[INFO] Git already installed${clear}"
         else
                 echo "${blue}${bold}[INFO] Installing Git...${clear}"
-                apt-get install git -y >/dev/null 2>&1
+                apt install git -y >/dev/null 2>&1
         fi
 
 	### Checking/Installing pip (*Needed to install Twilio lib)
@@ -145,95 +147,97 @@ dependencyCheck() {
                 echo "${green}${bold}[INFO] Pip already installed${clear}"
         else
                 echo "${blue}${bold}[INFO] Installing pip...${clear}"
-                apt-get install python-pip -y >/dev/null 2>&1
+                apt install python-pip -y >/dev/null 2>&1
 		
         fi
 
 }
 
-### Setup Email Version Gophish
+### Setup Email Version EvilgoGoPhish
 setupEmail() {
 	### Cleaning Port 80
 	fuser -k -s -n tcp 80
 
-	### Deleting Previous Gophish Source (*Need to be removed to update new rid)
+	### Deleting Previous EvilgoGoPhish Source (*Need to be removed to update new rid)
 	#rm -rf /root/go/src/github.com/gophish >/dev/null 2>&1 &&
 
-	### Installing Gophish
-    echo "${blue}${bold}[INFO] Downloading the latest Gophish from the source...${clear}"
+	### Installing EvilgoGoPhish
+    echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
     #mkdir -p /root/go &&
 	#export GOPATH=/root/go &&
 	#go get github.com/gophish/gophish >/dev/null 2>&1 &&
-	rm -rf /opt/gophish 2>/dev/null &&
+	rm -rf /opt/evilgogophish 2>/dev/null &&
 
-	#echo "${blue}${bold}[*] Creating a gophish folder: /opt/gophish${clear}"
+	#echo "${blue}${bold}[*] Creating a evilgogophish folder: /opt/evilgogophish${clear}"
     cd /opt &&
-	git clone https://github.com/gophish/gophish.git
+	git clone https://github.com/gophish/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
 		echo "${blue}${bold}[INFO] Updating \"rid\" to \"$rid\"${clear}"
-	    sed -i 's!rid!'$rid'!g' /opt/gophish/models/campaign.go
-		ridConfirm=$(cat /opt/gophish/models/campaign.go | grep $rid)
+	    sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
+		ridConfirm=$(cat /opt/evilgogophish/models/campaign.go | grep $rid)
 		echo "${blue}${bold}[INFO] Confirming the update: $ridConfirm (campaign.go)${clear}"
     fi
 
-	cd /opt/gophish &&
+	cd /opt/evilgogophish &&
 	go build &&
-	#mv ./gophish /opt/gophish/gophish &&
-	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/gophish &&
-	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/gophish/config.json &&
+	#mv ./evilgogophish /opt/evilgogophish/evilgogophish &&
+	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/evilgogophish &&
+	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/evilgogophish/config.json &&
+	sed -i 's!3333!8443!g' /opt/evilgogophish/config.json &&
 
-    echo "${blue}${bold}[INFO] Creating Gophish log folder: /var/log/gophish${clear}"
-    mkdir -p /var/log/gophish &&
+    echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
+    mkdir -p /var/log/evilgogophish &&
 
 	### Start Script Setup	
-	cp /opt/gogophish/gophish_start /etc/init.d/gophish &&
-	chmod +x /etc/init.d/gophish &&
-	update-rc.d gophish defaults
+	cp /opt/evilgogophish/evilgogophish_start /etc/init.d/evilgogophish &&
+	chmod +x /etc/init.d/evilgogophish &&
+	update-rc.d evilgogophish defaults
 }
 
 setupSMS() {
 	### Cleaning Port 80
 	fuser -k -s -n tcp 80
 
-	### Installing GoPhish
-    echo "${blue}${bold}[INFO] Downloading the latest Gophish from the source...${clear}"
+	### Installing EvilgoGoPhish
+    echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
     #mkdir -p /root/go &&
 	#export GOPATH=/root/go &&
 	#go get github.com/gophish/gophish >/dev/null 2>&1 &&
-	rm -rf /opt/gophish 2>/dev/null &&
+	rm -rf /opt/evilgogophish 2>/dev/null &&
 
-	#echo "${blue}${bold}[*] Creating a gophish folder: /opt/gophish${clear}"
+	#echo "${blue}${bold}[*] Creating a evilgogophish folder: /opt/evilgogophish${clear}"
     cd /opt &&
-	git clone https://github.com/gophish/gophish.git
+	git clone https://github.com/gophish/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
 		echo "${blue}${bold}[INFO] Updating \"rid\" to \"$rid\"${clear}"
-	    sed -i 's!rid!'$rid'!g' /opt/gophish/models/campaign.go
-		ridConfirm=$(cat /opt/gophish/models/campaign.go | grep $rid)
+	    sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
+		ridConfirm=$(cat /opt/evilgogophish/models/campaign.go | grep $rid)
 		echo "${blue}${bold}[INFO] Confirming the update: $ridConfirm (campaign.go)${clear}"
     fi
 
-	cd /opt/gophish &&
+	cd /opt/evilgogophish &&
 	go build &&
-	#mv ./gophish /opt/gophish/gophish &&
-	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/gophish &&
-	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/gophish/config.json &&
+	#mv ./evilgogophish /opt/evilgogophish/evilgogophish &&
+	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/evilgogophish &&
+	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/evilgogophish/config.json &&
+	sed -i 's!3333!8443!g' /opt/evilgogophish/config.json &&
 
-    echo "${blue}${bold}[INFO] Creating Gophish log folder: /var/log/gophish${clear}"
-    mkdir -p /var/log/gophish &&
+    echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
+    mkdir -p /var/log/evilgogophish &&
 
 	### Start Script Setup	
-	cp /opt/gogophish/gophish_start /etc/init.d/gophish &&
-	chmod +x /etc/init.d/gophish &&
-	update-rc.d gophish defaults
+	cp /opt/evilgogophish/evilgogophish_start /etc/init.d/evilgogophish &&
+	chmod +x /etc/init.d/evilgogophish &&
+	update-rc.d evilgogophish defaults
 
 	### Getting gosmish.py (Author: fals3s3t)
-	echo "${blue}${bold}[INFO] Pulling gosmish.py (Author: fals3s3t) to: /opt/gophish...${clear}"
-	wget https://raw.githubusercontent.com/fals3s3t/gosmish/master/gosmish.py -P /opt/gophish/gosmish.py 2>/dev/null &&
-	chmod +x /opt/gophish/gosmish.py
+	echo "${blue}${bold}[INFO] Pulling gosmish.py (Author: fals3s3t) to: /opt/evilgogophish...${clear}"
+	wget https://raw.githubusercontent.com/fals3s3t/gosmish/master/gosmish.py -P /opt/evilgogophish/gosmish.py 2>/dev/null &&
+	chmod +x /opt/evilgogophish/gosmish.py
 
 	### Installing Twilio
 	echo "${blue}${bold}[*] Installing Twilio...${clear}"
@@ -243,8 +247,8 @@ setupSMS() {
 	name=$(hostname)
 	echo "postfix postfix/mailname string sms.sms " | debconf-set-selections
 	echo "postfix postfix/main_mailer_type string 'Local Only'" | debconf-set-selections
-	apt-get -y  install postfix >/dev/null 2>&1
-	apt-get -y  install postfix-pcre >/dev/null 2>&1
+	apt -y  install postfix >/dev/null 2>&1
+	apt -y  install postfix-pcre >/dev/null 2>&1
 
 	sed -i  "/myhostname/c\myhostname = $name" /etc/postfix/main.cf >/dev/null 2>&1 &&
 	echo 'virtual_alias_maps = pcre:/etc/postfix/virtual' >> /etc/postfix/main.cf
@@ -253,9 +257,9 @@ setupSMS() {
 	service postfix start &&
 
 	### Start Script Setup	
-	cp gophish_start /etc/init.d/gophish &&
-	chmod +x /etc/init.d/gophish &&
-	update-rc.d gophish defaults
+	cp evilgogophish_start /etc/init.d/evilgogophish &&
+	chmod +x /etc/init.d/evilgogophish &&
+	update-rc.d evilgogophish defaults
 }
 
 
@@ -263,13 +267,13 @@ setupSMS() {
 letsEncrypt() {
 	### Clearning Port 80
 	fuser -k -s -n tcp 80 
-	service gophish stop 2>/dev/null
+	service evilgogophish stop 2>/dev/null
 	
 	### Installing certbot-auto
 	echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
 	#wget https://dl.eff.org/certbot-auto -qq
 	#chmod a+x certbot-auto
-	apt-get install certbot -y >/dev/null 2>&1
+	apt install certbot -y >/dev/null 2>&1
 
 	### Installing SSL Cert	
 	echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
@@ -280,30 +284,30 @@ letsEncrypt() {
 	certbot certonly --non-interactive --agree-tos --email example@gmail.com --standalone --preferred-challenges http -d $domain &&
 
 	echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}" &&
-	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/gophish/domain.key &&
-	cp /etc/letsencrypt/live/$domain/fullchain.pem /opt/gophish/domain.crt &&
-	sed -i 's!false!true!g' /opt/gophish/config.json &&
-	sed -i 's!:80!:443!g' /opt/gophish/config.json &&
-	sed -i 's!example.crt!domain.crt!g' /opt/gophish/config.json &&
-	sed -i 's!example.key!domain.key!g' /opt/gophish/config.json &&
-	sed -i 's!gophish_admin.crt!domain.crt!g' /opt/gophish/config.json &&
-	sed -i 's!gophish_admin.key!domain.key!g' /opt/gophish/config.json &&
-	mkdir -p /opt/gophish/static/endpoint &&
-	printf "User-agent: *\nDisallow: /" > /opt/gophish/static/endpoint/robots.txt &&
+	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
+	cp /etc/letsencrypt/live/$domain/fullchain.pem /opt/evilgogophish/domain.crt &&
+	sed -i 's!false!true!g' /opt/evilgogophish/config.json &&
+	sed -i 's!:80!:443!g' /opt/evilgogophish/config.json &&
+	sed -i 's!example.crt!domain.crt!g' /opt/evilgogophish/config.json &&
+	sed -i 's!example.key!domain.key!g' /opt/evilgogophish/config.json &&
+	sed -i 's!gophish_admin.crt!domain.crt!g' /opt/evilgogophish/config.json &&
+	sed -i 's!gophish_admin.key!domain.key!g' /opt/evilgogophish/config.json &&
+	mkdir -p /opt/evilgogophish/static/endpoint &&
+	printf "User-agent: *\nDisallow: /" > /opt/evilgogophish/static/endpoint/robots.txt &&
 	echo "${green}${bold}[+] Check if the cert is correctly installed: https://$domain/robots.txt${clear}"
 }
 
-gophishStart() {
-	service=$(ls /etc/init.d/gophish 2>/dev/null)
+evilgogophishStart() {
+	service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
 
 	if [[ $service ]];
 	then
 		sleep 1
-		service gophish restart &&
+		service evilgogophish restart &&
 		#ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1)
 		ipAddr=$(curl ifconfig.io 2>/dev/null)
-		pass=$(cat /var/log/gophish/gophish.error | grep 'Please login with' | cut -d '"' -f 4 | cut -d ' ' -f 10 | tail -n 1)
-		echo "${green}${bold}[INFO] Gophish Started: https://$ipAddr:3333 - [Login] Username: admin, Temporary Password: $pass${clear}"
+		pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | cut -d '"' -f 4 | cut -d ' ' -f 10 | tail -n 1)
+		echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443 - [Login] Username: admin, Temporary Password: $pass${clear}"
 	else
 		exit 1
 	fi
@@ -311,11 +315,11 @@ gophishStart() {
 
 cleanUp() {
 	echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
-	service gophish stop 2>/dev/null
-	rm -rf /opt/gophish 2>/dev/null
+	service evilgogophish stop 2>/dev/null
+	rm -rf /opt/evilgogophish 2>/dev/null
 	rm certbot-auto* 2>/dev/null
-	rm -rf /opt/gophish 2>/dev/null
-	rm /etc/init.d/gophish 2>/dev/null
+	rm -rf /opt/evilgogophish 2>/dev/null
+	rm /etc/init.d/evilgogophish 2>/dev/null
 	rm /etc/letsencrypt/keys/* 2>/dev/null
 	rm /etc/letsencrypt/csr/* 2>/dev/null
 	rm -rf /etc/letsencrypt/archive/* 2>/dev/null
@@ -335,22 +339,22 @@ while getopts ":r:esd:ch" opt; do
 			banner
 			dependencyCheck
 			setupEmail
-			gophishStart ;;
+			evilgogophishStart ;;
 		s)
 			banner
 			dependencyCheck
 			setupSMS
-			gophishStart ;;
+			evilgogophishStart ;;
 		d) 
 			domain=${OPTARG} 
 			letsEncrypt && 
-			gophishStart ;;
+			evilgogophishStart ;;
 		c)
 			cleanUp ;;
 		h | * ) 
 			exit_error ;;
 		:) 
-			echo "${red}${bold}[ERROR] -${OPTARG} requires an argument (e.g., -r page_id or -d gogophish.com)${clear}" 1>&2
+			echo "${red}${bold}[ERROR] -${OPTARG} requires an argument (e.g., -r page_id or -d evilgogophish.com)${clear}" 1>&2
 			exit 1;;
 	esac
 done
