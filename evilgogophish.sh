@@ -419,9 +419,22 @@ letsEncrypt() {
 	apt install certbot -y >/dev/null 2>&1
 
 	### Installing SSL Cert	
-	echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
+    echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
 
-	certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http -d $domain &&
+    # Asegurar que el puerto 80 esté libre
+    fuser -k -s -n tcp 80 2>/dev/null
+
+    # Obtener certificado usando el puerto 80 (NO 8443)
+    certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http --http-01-port 80 -d $domain
+
+if [ $? -ne 0 ]; then
+    echo "${red}${bold}[ERROR] Failed to obtain SSL certificate${clear}"
+    echo "Check that:"
+    echo "  - Domain $domain points to this server"
+    echo "  - Port 80 is accessible from internet"
+    echo "  - No firewall is blocking port 80"
+    exit 1
+fi
 
 	echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}" &&
 	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
