@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://github.com/bigb0sss/evilgogophish/blob/master/evilgogophish_img.png">
-  <h1 align="center">evilgogophish v0.1.3</h1>
+  <img width="896" height="1195" alt="imagen" src="https://github.com/user-attachments/assets/e73bfefc-5bed-443d-aad7-c36bbe47acb4" />
+  <h1 align="center">evilgogophish v1.0</h1>
 </p>
 
 A quick Bash script to automate the [Gophish](https://github.com/gophish/gophish) installation + LetsEncrypt your phishing domain.
