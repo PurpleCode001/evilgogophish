@@ -530,16 +530,16 @@ while getopts ":r:esd:ch" opt; do
 			banner
 			dependencyCheck
 			setupEmail
-			evilgogophishstart ;;
+			evilgogophishStart ;;
 		s)
 			banner
 			dependencyCheck
 			setupSMS
-			evilgogophishstart ;;
+			evilgogophishStart ;;
 		d) 
 			domain=${OPTARG} 
 			letsEncrypt && 
-			evilgogophishstart ;;
+			evilgogophishStart ;;
 		c)
 			cleanUp ;;
 		h | * ) 
