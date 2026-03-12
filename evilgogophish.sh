@@ -7,7 +7,7 @@
 # Description     : Automated script to install EvilgoGoPhish and configure SSL certificate with certbot, compatible with Evilginx 3.3.0+
 # Release Note    : 
 	03/12/26:
-		- Updated to EvilgoGoPhish v1.0
+		- Updated to EvilgoGoPhish v1.1
 		- Changed default port from 3333 to 8443
 		- Install ultimate version go with snap
 		- Updated author information
@@ -40,7 +40,7 @@ ___________________________________________/\/\/\/\_____________________________
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v1.0
+   <===  |=== | --------------------------------v1.1
        \ |   \|
         \|
 ${clear}
