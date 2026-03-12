@@ -23,7 +23,7 @@ Table of contents
 ## Installation
 
 ```
-git clone https://github.com/PurpleCode001s/evilgogophish.git
+git clone https://github.com/PurpleCode001/evilgogophish.git
 cd evilgogophish
 chmod +x evilgogophish.sh
 ```
@@ -163,10 +163,10 @@ $ aws ec2 import-key-pair \
 	--region us-east-2
 	
 4) Create AWS EC2
-$ ./ec2_create.sh - https://github.com/PurpleCode001s/evilgogophish/blob/master/aws/ec2_create.sh
+$ ./ec2_create.sh - https://github.com/PurpleCode001/evilgogophish/blob/master/aws/ec2_create.sh
 
 5) Terminate AWS EC2
-$ ./ec2_termination.sh - https://github.com/PurpleCode001s/evilgogophish/blob/master/aws/ec2_termination.sh
+$ ./ec2_termination.sh - https://github.com/PurpleCode001/evilgogophish/blob/master/aws/ec2_termination.sh
 ```
 
 ### Vultr
