@@ -509,13 +509,6 @@ evilgogophishStart() {
                 echo "  → Temporary Password: $pass"
             fi
         fi
-        
-        # Recordar abrir el puerto 8080 en el firewall
-        echo "${yellow}${bold}[INFO] Don't forget to open port 8080 in firewall:${clear}"
-        echo "  sudo ufw allow 8080/tcp"
-    else
-        echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
-        exit 1
     fi
 }
 
