@@ -8,6 +8,8 @@ A quick Bash script to automate the [Gophish](https://github.com/gophish/gophish
 
 Gophish is an open-source phishing toolkit designed for businesses and penetration testers. It provides the ability to quickly and easily setup and execute phishing engagements and security awareness training.
 
+TESTED IN UBUNTU 22.04
+
 Table of contents
 =================
 
@@ -168,9 +170,6 @@ $ ./ec2_create.sh - https://github.com/PurpleCode001/evilgogophish/blob/master/a
 5) Terminate AWS EC2
 $ ./ec2_termination.sh - https://github.com/PurpleCode001/evilgogophish/blob/master/aws/ec2_termination.sh
 ```
-
-### Vultr
-coming soon...
 
 ## Wildcard SSL Certificate Setup
 
