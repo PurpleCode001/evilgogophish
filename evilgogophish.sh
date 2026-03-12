@@ -444,22 +444,34 @@ evilgogophishStart() {
 	then
 		sleep 1
 		service evilgogophish restart &&
-		ipAddr=$(curl -s ifconfig.io 2>/dev/null)
 		
 		# Esperar a que se genere el log
 		sleep 3
+		
+		# Determinar qué URL mostrar según si se proporcionó dominio o no
+		if [ -n "$domain" ]; then
+			# Si hay dominio (modo SSL), mostrar el dominio
+			display_url="https://$domain:8443"
+		else
+			# Si no hay dominio (modo sin SSL), mostrar la IP
+			ipAddr=$(curl -s ifconfig.io 2>/dev/null)
+			if [ -z "$ipAddr" ]; then
+				ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1 | head -1)
+			fi
+			display_url="https://$ipAddr:8443"
+		fi
 		
 		# Obtener la contraseña temporal
 		if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
 			pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
 			if [ -n "$pass" ]; then
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443 - [Login] Username: admin, Temporary Password: $pass${clear}"
+				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url - [Login] Username: admin, Temporary Password: $pass${clear}"
 			else
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443${clear}"
+				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
 				echo "${yellow}${bold}[INFO] Check /var/log/evilgogophish/evilgogophish.error for the temporary password${clear}"
 			fi
 		else
-			echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443${clear}"
+			echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
 		fi
 	else
 		echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
