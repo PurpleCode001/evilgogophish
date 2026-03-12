@@ -363,3 +363,8 @@ if [[ $# -eq 0 ]];
 then
 	exit_error
 fi
+
+CONTACT AND DONATIONS
+
+TELEGRAM: @PURPLECODETEAM
+
