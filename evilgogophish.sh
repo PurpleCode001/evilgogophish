@@ -164,7 +164,7 @@ setupEmail() {
 	### Installing EvilgoGoPhish
     	echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
     	cd /opt &&
-	git clone https://github.com/gophish/gophish.git evilgogophish
+	git clone https://github.com/kgretzky/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
@@ -278,7 +278,7 @@ setupSMS() {
     	rm -rf /opt/evilgogophish 2>/dev/null &&
 
     	cd /opt &&
-	git clone https://github.com/kgretzky/evilginx2.git evilgogophish
+	git clone https://github.com/kgretzky/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
@@ -471,57 +471,52 @@ EOF
     echo "${green}${bold}[+] SSL configured for https://$domain:8443 (admin) and http://$domain:8080 (phishing)${clear}"
 }
 
-evilgogophishstart() {
-	service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
+evilgogophishStart() {
+    service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
 
-	if [[ $service ]];
-	then
-		sleep 1
-		service evilgogophish restart &&
-		
-		# Esperar a que se genere el log
-		sleep 3
-		
-		# Determinar qué URL mostrar según si se proporcionó dominio o no
-		if [ -n "$domain" ]; then
-			# Si hay dominio (modo SSL), mostrar el dominio
-			display_url="https://$domain:8443"
-		else
-			# Si no hay dominio (modo sin SSL), mostrar la IP
-			ipAddr=$(curl -s ifconfig.io 2>/dev/null)
-			if [ -z "$ipAddr" ]; then
-				ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1 | head -1)
-			fi
-			display_url="https://$ipAddr:8443"
-		fi
-		
-		# Obtener la contraseña temporal
-		if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
-			pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
-			if [ -n "$pass" ]; then
-				echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url - [Login] Username: admin, Temporary Password: $pass${clear}"
-			else
-				echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url${clear}"
-				echo "${yellow}${bold}[INFO] Check /var/log/evilgogophish/evilgogophish.error for the temporary password${clear}"
-			fi
-		else
-			echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url${clear}"
-		fi
-	else
-		echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
-		exit 1
-	fi
-}
-
-cleanUp() {
-	echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
-	service evilgogophish stop 2>/dev/null
-	rm -rf /opt/evilgogophish 2>/dev/null
-	rm -f /etc/init.d/evilgogophish 2>/dev/null
-	rm -rf /etc/letsencrypt/live/* 2>/dev/null
-	rm -rf /etc/letsencrypt/archive/* 2>/dev/null
-	rm -rf /etc/letsencrypt/renewal/* 2>/dev/null
-	echo "${green}${bold}[INFO] Cleanup completed!${clear}"
+    if [[ $service ]];
+    then
+        sleep 1
+        service evilgogophish restart &&
+        
+        # Esperar a que se genere el log
+        sleep 3
+        
+        # Determinar las URLs según si hay dominio o no
+        if [ -n "$domain" ]; then
+            admin_url="https://$domain:8443"
+            phish_url="http://$domain:8080"
+            echo "${green}${bold}[INFO] EvilgoGoPhish Started:${clear}"
+            echo "  → Admin Panel: $admin_url"
+            echo "  → Phishing Server: $phish_url"
+        else
+            # Si no hay dominio, mostrar la IP
+            ipAddr=$(curl -s ifconfig.io 2>/dev/null)
+            if [ -z "$ipAddr" ]; then
+                ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1 | head -1)
+            fi
+            admin_url="https://$ipAddr:8443"
+            phish_url="http://$ipAddr:8080"
+            echo "${green}${bold}[INFO] EvilgoGoPhish Started:${clear}"
+            echo "  → Admin Panel: $admin_url"
+            echo "  → Phishing Server: $phish_url"
+        fi
+        
+        # Obtener la contraseña temporal
+        if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
+            pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
+            if [ -n "$pass" ]; then
+                echo "  → Temporary Password: $pass"
+            fi
+        fi
+        
+        # Recordar abrir el puerto 8080 en el firewall
+        echo "${yellow}${bold}[INFO] Don't forget to open port 8080 in firewall:${clear}"
+        echo "  sudo ufw allow 8080/tcp"
+    else
+        echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
+        exit 1
+    fi
 }
 
 domain=''
