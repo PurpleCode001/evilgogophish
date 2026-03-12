@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://github.com/bigb0sss/gogophish/blob/master/gogophish_img.png">
-  <h1 align="center">gogophish v0.1.3</h1>
+  <img src="https://github.com/bigb0sss/evilgogophish/blob/master/evilgogophish_img.png">
+  <h1 align="center">evilgogophish v0.1.3</h1>
 </p>
 
 A quick Bash script to automate the [Gophish](https://github.com/gophish/gophish) installation + LetsEncrypt your phishing domain.
@@ -22,9 +22,9 @@ Table of contents
 ## Installation
 
 ```
-git clone https://github.com/bigb0sss/gogophish.git
-cd gogophish
-chmod +x gogophish.sh
+git clone https://github.com/bigb0sss/evilgogophish.git
+cd evilgogophish
+chmod +x evilgogophish.sh
 ```
 
 ## Usage & Example
@@ -33,26 +33,27 @@ This script will help you automate installing + configuring your phishing domain
 
 ### Usage
 ```
-./gogophish.sh -h
-	                          _     _     _
-                                 | |   (_)   | |
-     __ _  ___   __ _  ___  _ __ | |__  _ ___| |__
-    / _` |/ _ \ / _` |/ _ \| '_ \| '_ \| / __| '_ \
-   | (_| | (_) | (_| | (_) | |_) | | | | \__ \ | | |
-    \__, |\___/ \__, |\___/| .__/|_| |_|_|___/_| |_|
-     __/ |       __/ |     | |           [bigb0ss]
-    |___/       |___/      |_|
+./evilgogophish.sh -h
+
+
+--[[
+_/\/\/\/\/\/\______________/\/\____/\/\______________________________/\/\/\/\/\______________/\/\/\/\/\____/\/\________/\/\________________/\/\___________
+_/\____________/\/\__/\/\__________/\/\______/\/\/\/\____/\/\/\____/\/\____________/\/\/\____/\/\____/\/\__/\/\__________________/\/\/\/\__/\/\___________
+_/\/\/\/\/\____/\/\__/\/\__/\/\____/\/\____/\/\__/\/\__/\/\__/\/\__/\/\__/\/\/\__/\/\__/\/\__/\/\/\/\/\____/\/\/\/\____/\/\____/\/\/\/\____/\/\/\/\_______
+_/\/\____________/\/\/\____/\/\____/\/\______/\/\/\/\__/\/\__/\/\__/\/\____/\/\__/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\_____
+_/\/\/\/\/\/\______/\______/\/\/\__/\/\/\________/\/\____/\/\/\______/\/\/\/\/\____/\/\/\____/\/\__________/\/\__/\/\__/\/\/\__/\/\/\/\____/\/\__/\/\_____
+___________________________________________/\/\/\/\_______________________________________________________________________________________________________
+--]]                                                                                              [PSDT - PurpleCode]
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v0.1.3
+   <===  |=== | --------------------------------v1.0
        \ |   \|
         \|
 
-
 A quick Bash script to install GoPhish server.
 
-Usage: ./gogophish.sh [-r <rid name>] [-e] [-s] [-d <domain name> ] [-c] [-h]
+Usage: ./evilgogophish.sh [-r <rid name>] [-e] [-s] [-d <domain name> ] [-c] [-h]
 
 One shot to set up:
   - Gophish Server (Email Phishing Ver.)
@@ -70,33 +71,33 @@ Options:
   -h              	This help menu
 
 Examples:
-  ./gogophish.sh -e					Setup Email Phishing Gophish
-  ./gogophish.sh -s					Setup SMS Phishing Gophish
-  ./gogophish.sh -r <rid name> -e 			Setup Email Phishing Gophish + Your choice of rid
-  ./gogophish.sh -r <rid name> -s			Setup SMS Phishing Gophish + Your choice of rid
-  ./gogophish.sh -d <domain name>			Configure SSL cert for your phishing Domain
-  ./gogophish.sh -e -d <domain name>			Email Phishing Gophish + SSL cert for Phishing Domain
-  ./gogophish.sh -r <rid name> -e -d <domain name> 	Email Phishing Gophish + SSL cert + rid
+  ./evilgogophish.sh -e					Setup Email Phishing Gophish
+  ./evilgogophish.sh -s					Setup SMS Phishing Gophish
+  ./evilgogophish.sh -r <rid name> -e 			Setup Email Phishing Gophish + Your choice of rid
+  ./evilgogophish.sh -r <rid name> -s			Setup SMS Phishing Gophish + Your choice of rid
+  ./evilgogophish.sh -d <domain name>			Configure SSL cert for your phishing Domain
+  ./evilgogophish.sh -e -d <domain name>			Email Phishing Gophish + SSL cert for Phishing Domain
+  ./evilgogophish.sh -r <rid name> -e -d <domain name> 	Email Phishing Gophish + SSL cert + rid
 
 ```
 
 ### Example
 
 ```
-./gogophish.sh -e -d phish-me.com
+./evilevilgogophish.sh -e -d phish-me.com
 
-	                          _     _     _
-                                 | |   (_)   | |
-     __ _  ___   __ _  ___  _ __ | |__  _ ___| |__
-    / _` |/ _ \ / _` |/ _ \| '_ \| '_ \| / __| '_ \
-   | (_| | (_) | (_| | (_) | |_) | | | | \__ \ | | |
-    \__, |\___/ \__, |\___/| .__/|_| |_|_|___/_| |_|
-     __/ |       __/ |     | |           [bigb0ss]
-    |___/       |___/      |_|
+	 --[[
+_/\/\/\/\/\/\______________/\/\____/\/\______________________________/\/\/\/\/\______________/\/\/\/\/\____/\/\________/\/\________________/\/\___________
+_/\____________/\/\__/\/\__________/\/\______/\/\/\/\____/\/\/\____/\/\____________/\/\/\____/\/\____/\/\__/\/\__________________/\/\/\/\__/\/\___________
+_/\/\/\/\/\____/\/\__/\/\__/\/\____/\/\____/\/\__/\/\__/\/\__/\/\__/\/\__/\/\/\__/\/\__/\/\__/\/\/\/\/\____/\/\/\/\____/\/\____/\/\/\/\____/\/\/\/\_______
+_/\/\____________/\/\/\____/\/\____/\/\______/\/\/\/\__/\/\__/\/\__/\/\____/\/\__/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\__________/\/\__/\/\__/\/\_____
+_/\/\/\/\/\/\______/\______/\/\/\__/\/\/\________/\/\____/\/\/\______/\/\/\/\/\____/\/\/\____/\/\__________/\/\__/\/\__/\/\/\__/\/\/\/\____/\/\__/\/\_____
+___________________________________________/\/\/\/\_______________________________________________________________________________________________________
+--]]                                                                                              [PSDT - PurpleCode]
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v0.1.3
+   <===  |=== | --------------------------------v1.0
        \ |   \|
         \|
 
@@ -156,15 +157,15 @@ First, 'ssh-keygen' to create a SSH key pair
 Second, import the .pub key to AWS EC2 Key Pair
 
 $ aws ec2 import-key-pair \
-	--key-name gogophish-ssh \
-	--public-key-material file:///Users/bigb0ss/tools/aws-cli/.ssh/gogophish_id_rsa.pub \
+	--key-name evilgogophish-ssh \
+	--public-key-material file:///Users/bigb0ss/tools/aws-cli/.ssh/evilgogophish_id_rsa.pub \
 	--region us-east-2
 	
 4) Create AWS EC2
-$ ./ec2_create.sh - https://github.com/bigb0sss/gogophish/blob/master/aws/ec2_create.sh
+$ ./ec2_create.sh - https://github.com/bigb0sss/evilgogophish/blob/master/aws/ec2_create.sh
 
 5) Terminate AWS EC2
-$ ./ec2_termination.sh - https://github.com/bigb0sss/gogophish/blob/master/aws/ec2_termination.sh
+$ ./ec2_termination.sh - https://github.com/bigb0sss/evilgogophish/blob/master/aws/ec2_termination.sh
 ```
 
 ### Vultr
@@ -231,11 +232,9 @@ service gophish restart
 ```
 
 ## Work In-Progress
-* SMS Phishing Server Config is not 100% integrated to gogophish. And disclaimer to using fals3s3t python script.
+* SMS Phishing Server Config is not 100% integrated to evilgogophish. And disclaimer to using fals3s3t python script.
 * Adding another function to install Evilginx with GoPhish
 
 ## Change Log
-* 09/26/20 - gogophish BETA is released
-* 09/27/20 - gogophish v0.1.1 is released
-* 09/27/20 - gogophish v0.1.2 is released
-* 03/22/23 - gogophish v0.1.3 is released
+
+* 03/12/26: Evilevilgogophish 1.0 is released
