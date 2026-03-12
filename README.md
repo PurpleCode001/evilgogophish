@@ -239,3 +239,8 @@ service gophish restart
 ## Change Log
 
 * 03/12/26: Evilevilgogophish 1.0 is released
+
+## CONTACT AND DONATIONS
+
+TELEGRAM: @PURPLECODETEAM
+
