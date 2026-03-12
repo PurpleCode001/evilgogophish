@@ -211,7 +211,7 @@ setupEmail() {
 # Description: Initialization file: service evilgogophish {start|stop|status} 
 # Config: /opt/evilgogophish/config.json
 
-processName=EvilGoPhish
+processName=EvilgoGoPhish
 process=evilgogophish
 appDirectory=/opt/evilgogophish
 logfile=/var/log/evilgogophish/evilgogophish.log
