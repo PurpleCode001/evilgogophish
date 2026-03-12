@@ -269,6 +269,32 @@ EOFINIT
 	fi
 }
 
+cleanUp() {
+    echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
+    
+    # Detener servicio
+    service evilgogophish stop 2>/dev/null
+    
+    # Eliminar directorio de instalación
+    rm -rf /opt/evilgogophish 2>/dev/null
+    
+    # Eliminar script de inicio
+    rm -f /etc/init.d/evilgogophish 2>/dev/null
+    
+    # Eliminar certificados (opcional)
+    echo "${yellow}${bold}[INFO] Do you want to remove Let's Encrypt certificates? (y/n)${clear}"
+    read -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -rf /etc/letsencrypt/live/* 2>/dev/null
+        rm -rf /etc/letsencrypt/archive/* 2>/dev/null
+        rm -rf /etc/letsencrypt/renewal/* 2>/dev/null
+        echo "${green}${bold}[INFO] Certificates removed${clear}"
+    fi
+    
+    echo "${green}${bold}[INFO] Cleanup completed!${clear}"
+}
+
 setupSMS() {
 	### Cleaning Port 80
 	fuser -k -s -n tcp 80
