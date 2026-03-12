@@ -158,42 +158,115 @@ setupEmail() {
 	### Cleaning Port 80
 	fuser -k -s -n tcp 80
 
-	### Deleting Previous EvilgoGoPhish Source (*Need to be removed to update new rid)
-	#rm -rf /root/go/src/github.com/gophish >/dev/null 2>&1 &&
+	### Deleting Previous EvilgoGoPhish Source
+	rm -rf /opt/evilgogophish 2>/dev/null
 
 	### Installing EvilgoGoPhish
-    echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
-    #mkdir -p /root/go &&
-	#export GOPATH=/root/go &&
-	#go get github.com/gophish/gophish >/dev/null 2>&1 &&
-	rm -rf /opt/evilgogophish 2>/dev/null &&
-
-	#echo "${blue}${bold}[*] Creating a evilgogophish folder: /opt/evilgogophish${clear}"
-    cd /opt &&
+    	echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
+    	cd /opt &&
 	git clone https://github.com/gophish/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
 		echo "${blue}${bold}[INFO] Updating \"rid\" to \"$rid\"${clear}"
-	    sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
+	    	sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
 		ridConfirm=$(cat /opt/evilgogophish/models/campaign.go | grep $rid)
 		echo "${blue}${bold}[INFO] Confirming the update: $ridConfirm (campaign.go)${clear}"
-    fi
+    	fi
 
 	cd /opt/evilgogophish &&
 	go build &&
-	#mv ./evilgogophish /opt/evilgogophish/evilgogophish &&
-	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/evilgogophish &&
+	
+	# Renombrar el binario
+	if [ -f /opt/evilgogophish/gophish ]; then
+		mv /opt/evilgogophish/gophish /opt/evilgogophish/evilgogophish
+	fi
+	
+	# Configurar archivo de configuración
 	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/evilgogophish/config.json &&
 	sed -i 's!3333!8443!g' /opt/evilgogophish/config.json &&
 
-    echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
-    mkdir -p /var/log/evilgogophish &&
+    	echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
+    	mkdir -p /var/log/evilgogophish &&
 
-	### Start Script Setup	
-	cp /opt/evilgogophish/evilgogophish_start /etc/init.d/evilgogophish &&
-	chmod +x /etc/init.d/evilgogophish &&
-	update-rc.d evilgogophish defaults
+	### Start Script Setup - CORREGIDO
+	echo "${blue}${bold}[INFO] Configuring EvilgoGoPhish service...${clear}"
+	
+	# Obtener la ruta del directorio donde se está ejecutando este script
+	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+	
+	# Verificar si el archivo evilgogophish_start existe en el directorio del script
+	if [ -f "${SCRIPT_DIR}/evilgogophish_start" ]; then
+		cp "${SCRIPT_DIR}/evilgogophish_start" /etc/init.d/evilgogophish &&
+		chmod +x /etc/init.d/evilgogophish &&
+		update-rc.d evilgogophish defaults
+		echo "${green}${bold}[INFO] Service script installed successfully from ${SCRIPT_DIR}${clear}"
+	else
+		echo "${yellow}${bold}[WARNING] evilgogophish_start not found in ${SCRIPT_DIR}. Creating a default one...${clear}"
+		
+		# Crear un archivo de inicio por defecto
+		cat > /etc/init.d/evilgogophish << 'EOFINIT'
+#!/bin/bash
+# /etc/init.d/evilgogophish
+# Description: Initialization file: service evilgogophish {start|stop|status} 
+# Config: /opt/evilgogophish/config.json
+
+processName=EvilGoPhish
+process=evilgogophish
+appDirectory=/opt/evilgogophish
+logfile=/var/log/evilgogophish/evilgogophish.log
+errfile=/var/log/evilgogophish/evilgogophish.error
+
+start() 
+{
+echo 'Starting '${processName}'...'
+cd ${appDirectory}
+
+if [ -f "./evilgogophish" ]; then
+    nohup ./evilgogophish >>$logfile 2>>$errfile &
+    echo "${processName} started"
+else
+    echo "ERROR: Binary not found"
+    exit 1
+fi
+sleep 2
+}
+
+stop() 
+{
+echo 'Stopping '${processName}'...'
+pid=$(pidof evilgogophish)
+if [ -n "$pid" ]; then
+    kill ${pid}
+    echo "${processName} stopped"
+else
+    echo "${processName} is not running"
+fi
+sleep 1
+}
+
+status() 
+{
+pid=$(pidof evilgogophish)
+if [[ "$pid" != "" ]]; then
+    echo "${processName} is running (PID: $pid)"
+else
+    echo "${processName} is not running"
+fi
+}
+
+case $1 in
+    start) start ;;
+    stop) stop ;;
+    status) status ;;
+    restart) stop; sleep 2; start ;;
+    *) echo "Usage: $0 {start|stop|status|restart}"; exit 1 ;;
+esac
+EOFINIT
+		chmod +x /etc/init.d/evilgogophish
+		update-rc.d evilgogophish defaults
+		echo "${green}${bold}[INFO] Default service script created${clear}"
+	fi
 }
 
 setupSMS() {
@@ -201,87 +274,154 @@ setupSMS() {
 	fuser -k -s -n tcp 80
 
 	### Installing EvilgoGoPhish
-    echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
-    #mkdir -p /root/go &&
-	#export GOPATH=/root/go &&
-	#go get github.com/gophish/gophish >/dev/null 2>&1 &&
-	rm -rf /opt/evilgogophish 2>/dev/null &&
+    	echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
+    	rm -rf /opt/evilgogophish 2>/dev/null &&
 
-	#echo "${blue}${bold}[*] Creating a evilgogophish folder: /opt/evilgogophish${clear}"
-    cd /opt &&
+    	cd /opt &&
 	git clone https://github.com/gophish/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
 		echo "${blue}${bold}[INFO] Updating \"rid\" to \"$rid\"${clear}"
-	    sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
+	    	sed -i 's!rid!'$rid'!g' /opt/evilgogophish/models/campaign.go
 		ridConfirm=$(cat /opt/evilgogophish/models/campaign.go | grep $rid)
 		echo "${blue}${bold}[INFO] Confirming the update: $ridConfirm (campaign.go)${clear}"
-    fi
+    	fi
 
 	cd /opt/evilgogophish &&
 	go build &&
-	#mv ./evilgogophish /opt/evilgogophish/evilgogophish &&
-	#cp -R $GOPATH/src/github.com/gophish/gophish/* /opt/evilgogophish &&
+	
+	# Renombrar el binario
+	if [ -f /opt/evilgogophish/gophish ]; then
+		mv /opt/evilgogophish/gophish /opt/evilgogophish/evilgogophish
+	fi
+	
+	# Configurar archivo de configuración
 	sed -i 's!127.0.0.1!0.0.0.0!g' /opt/evilgogophish/config.json &&
 	sed -i 's!3333!8443!g' /opt/evilgogophish/config.json &&
 
-    echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
-    mkdir -p /var/log/evilgogophish &&
+    	echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
+    	mkdir -p /var/log/evilgogophish &&
 
-	### Start Script Setup	
-	cp /opt/evilgogophish/evilgogophish_start /etc/init.d/evilgogophish &&
-	chmod +x /etc/init.d/evilgogophish &&
-	update-rc.d evilgogophish defaults
-
-	### Getting gosmish.py (Author: fals3s3t)
-	echo "${blue}${bold}[INFO] Pulling gosmish.py (Author: fals3s3t) to: /opt/evilgogophish...${clear}"
-	wget https://raw.githubusercontent.com/fals3s3t/gosmish/master/gosmish.py -P /opt/evilgogophish/gosmish.py 2>/dev/null &&
-	chmod +x /opt/evilgogophish/gosmish.py
+	### Getting gosmish.py
+	echo "${blue}${bold}[INFO] Pulling gosmish.py to: /opt/evilgogophish...${clear}"
+	mkdir -p /opt/evilgogophish/gosmish
+	wget -q https://raw.githubusercontent.com/fals3s3t/gosmish/master/gosmish.py -O /opt/evilgogophish/gosmish/gosmish.py 2>/dev/null &&
+	chmod +x /opt/evilgogophish/gosmish/gosmish.py
 
 	### Installing Twilio
 	echo "${blue}${bold}[*] Installing Twilio...${clear}"
-	pip install -q  twilio >/dev/null 2>&1 &&
+	pip install -q twilio >/dev/null 2>&1 &&
 
 	echo "${blue}${bold}[INFO] Installing and configuring Postfix for SMS SMTP blackhole...${clear}"
 	name=$(hostname)
-	echo "postfix postfix/mailname string sms.sms " | debconf-set-selections
+	echo "postfix postfix/mailname string sms.sms" | debconf-set-selections
 	echo "postfix postfix/main_mailer_type string 'Local Only'" | debconf-set-selections
-	apt -y  install postfix >/dev/null 2>&1
-	apt -y  install postfix-pcre >/dev/null 2>&1
+	apt -y install postfix >/dev/null 2>&1
+	apt -y install postfix-pcre >/dev/null 2>&1
 
-	sed -i  "/myhostname/c\myhostname = $name" /etc/postfix/main.cf >/dev/null 2>&1 &&
+	sed -i "/myhostname/c\myhostname = $name" /etc/postfix/main.cf >/dev/null 2>&1 &&
 	echo 'virtual_alias_maps = pcre:/etc/postfix/virtual' >> /etc/postfix/main.cf
 	echo '/.*/nonexist' > /etc/postfix/virtual
 	service postfix stop &&
 	service postfix start &&
 
-	### Start Script Setup	
-	cp evilgogophish_start /etc/init.d/evilgogophish &&
-	chmod +x /etc/init.d/evilgogophish &&
-	update-rc.d evilgogophish defaults
+	### Start Script Setup - CORREGIDO
+	echo "${blue}${bold}[INFO] Configuring EvilgoGoPhish service...${clear}"
+	
+	# Obtener la ruta del directorio donde se está ejecutando este script
+	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+	
+	# Verificar si el archivo evilgogophish_start existe en el directorio del script
+	if [ -f "${SCRIPT_DIR}/evilgogophish_start" ]; then
+		cp "${SCRIPT_DIR}/evilgogophish_start" /etc/init.d/evilgogophish &&
+		chmod +x /etc/init.d/evilgogophish &&
+		update-rc.d evilgogophish defaults
+		echo "${green}${bold}[INFO] Service script installed successfully from ${SCRIPT_DIR}${clear}"
+	else
+		echo "${yellow}${bold}[WARNING] evilgogophish_start not found in ${SCRIPT_DIR}. Using default service script...${clear}"
+		
+		# Usar el mismo script por defecto que en setupEmail
+		if [ ! -f /etc/init.d/evilgogophish ]; then
+			cat > /etc/init.d/evilgogophish << 'EOFINIT'
+#!/bin/bash
+# /etc/init.d/evilgogophish
+# Description: Initialization file: service evilgogophish {start|stop|status} 
+# Config: /opt/evilgogophish/config.json
+
+processName=EvilGoPhish
+process=evilgogophish
+appDirectory=/opt/evilgogophish
+logfile=/var/log/evilgogophish/evilgogophish.log
+errfile=/var/log/evilgogophish/evilgogophish.error
+
+start() 
+{
+echo 'Starting '${processName}'...'
+cd ${appDirectory}
+
+if [ -f "./evilgogophish" ]; then
+    nohup ./evilgogophish >>$logfile 2>>$errfile &
+    echo "${processName} started"
+else
+    echo "ERROR: Binary not found"
+    exit 1
+fi
+sleep 2
 }
 
+stop() 
+{
+echo 'Stopping '${processName}'...'
+pid=$(pidof evilgogophish)
+if [ -n "$pid" ]; then
+    kill ${pid}
+    echo "${processName} stopped"
+else
+    echo "${processName} is not running"
+fi
+sleep 1
+}
+
+status() 
+{
+pid=$(pidof evilgogophish)
+if [[ "$pid" != "" ]]; then
+    echo "${processName} is running (PID: $pid)"
+else
+    echo "${processName} is not running"
+fi
+}
+
+case $1 in
+    start) start ;;
+    stop) stop ;;
+    status) status ;;
+    restart) stop; sleep 2; start ;;
+    *) echo "Usage: $0 {start|stop|status|restart}"; exit 1 ;;
+esac
+EOFINIT
+			chmod +x /etc/init.d/evilgogophish
+			update-rc.d evilgogophish defaults
+		fi
+		echo "${green}${bold}[INFO] Service script configured${clear}"
+	fi
+}
 
 ### Setup SSL Cert
 letsEncrypt() {
-	### Clearning Port 80
+	### Cleaning Port 80
 	fuser -k -s -n tcp 80 
 	service evilgogophish stop 2>/dev/null
 	
-	### Installing certbot-auto
+	### Installing certbot
 	echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
-	#wget https://dl.eff.org/certbot-auto -qq
-	#chmod a+x certbot-auto
 	apt install certbot -y >/dev/null 2>&1
 
 	### Installing SSL Cert	
 	echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
 
-	### Manual
-	#./certbot-auto certonly -d $domain --manual --preferred-challenges dns -m example@gmail.com --agree-tos && 
-	### Auto
-	certbot certonly --non-interactive --agree-tos --email example@gmail.com --standalone --preferred-challenges http -d $domain &&
+	certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http -d $domain &&
 
 	echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}" &&
 	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
@@ -304,11 +444,25 @@ evilgogophishStart() {
 	then
 		sleep 1
 		service evilgogophish restart &&
-		#ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1)
-		ipAddr=$(curl ifconfig.io 2>/dev/null)
-		pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | cut -d '"' -f 4 | cut -d ' ' -f 10 | tail -n 1)
-		echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443 - [Login] Username: admin, Temporary Password: $pass${clear}"
+		ipAddr=$(curl -s ifconfig.io 2>/dev/null)
+		
+		# Esperar a que se genere el log
+		sleep 3
+		
+		# Obtener la contraseña temporal
+		if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
+			pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
+			if [ -n "$pass" ]; then
+				echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443 - [Login] Username: admin, Temporary Password: $pass${clear}"
+			else
+				echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443${clear}"
+				echo "${yellow}${bold}[INFO] Check /var/log/evilgogophish/evilgogophish.error for the temporary password${clear}"
+			fi
+		else
+			echo "${green}${bold}[INFO] EvilgoGoPhish Started: https://$ipAddr:8443${clear}"
+		fi
 	else
+		echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
 		exit 1
 	fi
 }
@@ -317,15 +471,11 @@ cleanUp() {
 	echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
 	service evilgogophish stop 2>/dev/null
 	rm -rf /opt/evilgogophish 2>/dev/null
-	rm certbot-auto* 2>/dev/null
-	rm -rf /opt/evilgogophish 2>/dev/null
-	rm /etc/init.d/evilgogophish 2>/dev/null
-	rm /etc/letsencrypt/keys/* 2>/dev/null
-	rm /etc/letsencrypt/csr/* 2>/dev/null
-	rm -rf /etc/letsencrypt/archive/* 2>/dev/null
+	rm -f /etc/init.d/evilgogophish 2>/dev/null
 	rm -rf /etc/letsencrypt/live/* 2>/dev/null
+	rm -rf /etc/letsencrypt/archive/* 2>/dev/null
 	rm -rf /etc/letsencrypt/renewal/* 2>/dev/null
-	echo "${green}${bold}[INFO] Done!${clear}"
+	echo "${green}${bold}[INFO] Cleanup completed!${clear}"
 }
 
 domain=''
