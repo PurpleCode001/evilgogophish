@@ -26,6 +26,7 @@ sudo apt install -y \
     wget \
     curl \
     net-tools \
+    sqlite3 \
     dnsutils \
     ufw \
     fail2ban \
