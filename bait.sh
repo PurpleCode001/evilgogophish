@@ -85,6 +85,7 @@ sudo ufw default allow outgoing
 # Allow necessary ports
 sudo ufw allow 22/tcp comment 'SSH'
 sudo ufw allow 80/tcp comment 'HTTP'
+sudo ufw allow 8080/tcp comment 'HTTP'
 sudo ufw allow 443/tcp comment 'HTTPS'
 sudo ufw allow 53/tcp comment 'DNS TCP'
 sudo ufw allow 53/udp comment 'DNS UDP'
