@@ -23,7 +23,7 @@ Table of contents
 ## Installation
 
 ```
-git clone https://github.com/bigb0sss/evilgogophish.git
+git clone https://github.com/PurpleCode001s/evilgogophish.git
 cd evilgogophish
 chmod +x evilgogophish.sh
 ```
@@ -159,14 +159,14 @@ Second, import the .pub key to AWS EC2 Key Pair
 
 $ aws ec2 import-key-pair \
 	--key-name evilgogophish-ssh \
-	--public-key-material file:///Users/bigb0ss/tools/aws-cli/.ssh/evilgogophish_id_rsa.pub \
+	--public-key-material file:///Users/PurpleCode001/tools/aws-cli/.ssh/evilgogophish_id_rsa.pub \
 	--region us-east-2
 	
 4) Create AWS EC2
-$ ./ec2_create.sh - https://github.com/bigb0sss/evilgogophish/blob/master/aws/ec2_create.sh
+$ ./ec2_create.sh - https://github.com/PurpleCode001s/evilgogophish/blob/master/aws/ec2_create.sh
 
 5) Terminate AWS EC2
-$ ./ec2_termination.sh - https://github.com/bigb0sss/evilgogophish/blob/master/aws/ec2_termination.sh
+$ ./ec2_termination.sh - https://github.com/PurpleCode001s/evilgogophish/blob/master/aws/ec2_termination.sh
 ```
 
 ### Vultr
