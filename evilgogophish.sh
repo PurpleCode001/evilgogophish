@@ -189,7 +189,7 @@ setupEmail() {
     	echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
     	mkdir -p /var/log/evilgogophish &&
 
-	### Start Script Setup - CORREGIDO
+	### start Script Setup - CORREGIDO
 	echo "${blue}${bold}[INFO] Configuring EvilgoGoPhish service...${clear}"
 	
 	# Obtener la ruta del directorio donde se está ejecutando este script
@@ -278,7 +278,7 @@ setupSMS() {
     	rm -rf /opt/evilgogophish 2>/dev/null &&
 
     	cd /opt &&
-	git clone https://github.com/gophish/gophish.git evilgogophish
+	git clone https://github.com/kgretzky/evilginx2.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
@@ -410,15 +410,15 @@ EOFINIT
 
 ### Setup SSL Cert
 letsEncrypt() {
-	### Cleaning Port 80
-	fuser -k -s -n tcp 80 
-	service evilgogophish stop 2>/dev/null
-	
-	### Installing certbot
-	echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
-	apt install certbot -y >/dev/null 2>&1
+    ### Cleaning Port 80
+    fuser -k -s -n tcp 80 
+    service evilgogophish stop 2>/dev/null
+    
+    ### Installing certbot
+    echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
+    apt install certbot -y >/dev/null 2>&1
 
-	### Installing SSL Cert	
+    ### Installing SSL Cert	
     echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
 
     # Asegurar que el puerto 80 esté libre
@@ -427,30 +427,51 @@ letsEncrypt() {
     # Obtener certificado usando el puerto 80 (NO 8443)
     certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http --http-01-port 80 -d $domain
 
-if [ $? -ne 0 ]; then
-    echo "${red}${bold}[ERROR] Failed to obtain SSL certificate${clear}"
-    echo "Check that:"
-    echo "  - Domain $domain points to this server"
-    echo "  - Port 80 is accessible from internet"
-    echo "  - No firewall is blocking port 80"
-    exit 1
-fi
+    if [ $? -ne 0 ]; then
+        echo "${red}${bold}[ERROR] Failed to obtain SSL certificate${clear}"
+        echo "Check that:"
+        echo "  - Domain $domain points to this server"
+        echo "  - Port 80 is accessible from internet"
+        echo "  - No firewall is blocking port 80"
+        exit 1
+    fi
 
-	echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}" &&
-	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
-	cp /etc/letsencrypt/live/$domain/fullchain.pem /opt/evilgogophish/domain.crt &&
-	sed -i 's!false!true!g' /opt/evilgogophish/config.json &&
-	sed -i 's!:80!:8443!g' /opt/evilgogophish/config.json &&
-	sed -i 's!example.crt!domain.crt!g' /opt/evilgogophish/config.json &&
-	sed -i 's!example.key!domain.key!g' /opt/evilgogophish/config.json &&
-	sed -i 's!gophish_admin.crt!domain.crt!g' /opt/evilgogophish/config.json &&
-	sed -i 's!gophish_admin.key!domain.key!g' /opt/evilgogophish/config.json &&
-	mkdir -p /opt/evilgogophish/static/endpoint &&
-	printf "User-agent: *\nDisallow: /" > /opt/evilgogophish/static/endpoint/robots.txt &&
-	echo "${green}${bold}[+] Check if the cert is correctly installed: https://$domain/robots.txt${clear}"
+    echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}"
+    
+    # Crear NUEVO archivo de configuración con admin en 8443 y phish en 8080
+    cat > /opt/evilgogophish/config.json << EOF
+{
+    "admin_server": {
+        "listen_url": "0.0.0.0:8443",
+        "use_tls": true,
+        "cert_path": "/etc/letsencrypt/live/$domain/fullchain.pem",
+        "key_path": "/etc/letsencrypt/live/$domain/privkey.pem",
+        "trusted_origins": []
+    },
+    "phish_server": {
+        "listen_url": "0.0.0.0:8080",
+        "use_tls": false,
+        "cert_path": "",
+        "key_path": ""
+    },
+    "db_name": "sqlite3",
+    "db_path": "gophish.db",
+    "migrations_prefix": "db/db_",
+    "contact_address": "",
+    "logging": {
+        "filename": "/var/log/evilgogophish/evilgogophish.log"
+    }
+}
+EOF
+
+    # Crear robots.txt
+    mkdir -p /opt/evilgogophish/static/endpoint
+    printf "User-agent: *\nDisallow: /" > /opt/evilgogophish/static/endpoint/robots.txt
+    
+    echo "${green}${bold}[+] SSL configured for https://$domain:8443 (admin) and http://$domain:8080 (phishing)${clear}"
 }
 
-evilgogophishStart() {
+evilgogophishstart() {
 	service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
 
 	if [[ $service ]];
@@ -478,13 +499,13 @@ evilgogophishStart() {
 		if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
 			pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
 			if [ -n "$pass" ]; then
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url - [Login] Username: admin, Temporary Password: $pass${clear}"
+				echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url - [Login] Username: admin, Temporary Password: $pass${clear}"
 			else
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
+				echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url${clear}"
 				echo "${yellow}${bold}[INFO] Check /var/log/evilgogophish/evilgogophish.error for the temporary password${clear}"
 			fi
 		else
-			echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
+			echo "${green}${bold}[INFO] EvilgoGoPhish started: $display_url${clear}"
 		fi
 	else
 		echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
@@ -514,16 +535,16 @@ while getopts ":r:esd:ch" opt; do
 			banner
 			dependencyCheck
 			setupEmail
-			evilgogophishStart ;;
+			evilgogophishstart ;;
 		s)
 			banner
 			dependencyCheck
 			setupSMS
-			evilgogophishStart ;;
+			evilgogophishstart ;;
 		d) 
 			domain=${OPTARG} 
 			letsEncrypt && 
-			evilgogophishStart ;;
+			evilgogophishstart ;;
 		c)
 			cleanUp ;;
 		h | * ) 
