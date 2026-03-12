@@ -1,0 +1,64 @@
+#!/bin/bash
+# /etc/init.d/evilgogophish
+# Description: Initialization file: service evilgogophish {start|stop|status} 
+# Config: /opt/evilgogophish/config.json
+
+processName=EvilGoPhish
+process=evilgogophish
+appDirectory=/opt/evilgogophish
+logfile=/var/log/evilgogophish/evilgogophish.log
+errfile=/var/log/evilgogophish/evilgogophish.error
+
+start() 
+{
+echo 'Starting '${processName}'...'
+cd ${appDirectory}
+
+# Verificar si el binario existe (puede ser gophish o evilgogophish)
+if [ -f "./evilgogophish" ]; then
+    process=evilgogophish
+elif [ -f "./gophish" ]; then
+    process=gophish
+    echo "Note: Using gophish binary as evilgogophish"
+else
+    echo "ERROR: No binary found (neither evilgogophish nor gophish)"
+    exit 1
+fi
+
+nohup ./$process >>$logfile 2>>$errfile &
+sleep 2
+echo ${processName}' started with binary: '$process
+}
+
+stop() 
+{
+echo 'Stopping '${processName}'...'
+# Intentar con evilgogophish primero, luego con gophish
+pid=$(/usr/bin/pidof evilgogophish 2>/dev/null || /usr/bin/pidof gophish 2>/dev/null)
+if [ -n "$pid" ]; then
+    kill ${pid}
+    echo ${processName}' stopped'
+else
+    echo ${processName}' is not running'
+fi
+sleep 1
+}
+
+status() 
+{
+# Verificar ambos posibles nombres de proceso
+pid=$(/usr/bin/pidof evilgogophish 2>/dev/null || /usr/bin/pidof gophish 2>/dev/null)
+if [[ "$pid" != "" ]]; then
+    echo ${processName}' is running (PID: '$pid')...'
+else
+    echo ${processName}' is not running...'
+fi
+}
+
+case $1 in
+start|stop|status) "$1" ;;
+*)
+    echo "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
+esac
