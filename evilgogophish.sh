@@ -1,13 +1,13 @@
 #!/bin/bash
 
 <<com
-# Version         : 1.0
+# Version         : 1.1 - Bait version
 # Last update     : 03/12/2026
 # Author          : PSDT - PurpleCode
 # Description     : Automated script to install EvilgoGoPhish and configure SSL certificate with certbot, compatible with Evilginx 3.3.0+
 # Release Note    : 
 	03/12/26:
-		- Updated to EvilgoGoPhish v1.1
+		- Updated to EvilgoGoPhish v1.1 - Bait version
 		- Changed default port from 3333 to 8443
 		- Install ultimate version go with snap
 		- Updated author information
@@ -40,7 +40,7 @@ ___________________________________________/\/\/\/\_____________________________
 
         /|
        / |   /|
-   <===  |=== | --------------------------------v1.1
+   <===  |=== | --------------------------------v1.1 - Bait version
        \ |   \|
         \|
 ${clear}
@@ -164,7 +164,7 @@ setupEmail() {
 	### Installing EvilgoGoPhish
     	echo "${blue}${bold}[INFO] Downloading the latest EvilgoGoPhish from the source...${clear}"
     	cd /opt &&
-	git clone https://github.com/gophish/gophish.git evilgogophish
+	git clone https://github.com/kgretzky/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
@@ -189,7 +189,7 @@ setupEmail() {
     	echo "${blue}${bold}[INFO] Creating EvilgoGoPhish log folder: /var/log/evilgogophish${clear}"
     	mkdir -p /var/log/evilgogophish &&
 
-	### Start Script Setup - CORREGIDO
+	### start Script Setup - CORREGIDO
 	echo "${blue}${bold}[INFO] Configuring EvilgoGoPhish service...${clear}"
 	
 	# Obtener la ruta del directorio donde se está ejecutando este script
@@ -269,6 +269,32 @@ EOFINIT
 	fi
 }
 
+cleanUp() {
+    echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
+    
+    # Detener servicio
+    service evilgogophish stop 2>/dev/null
+    
+    # Eliminar directorio de instalación
+    rm -rf /opt/evilgogophish 2>/dev/null
+    
+    # Eliminar script de inicio
+    rm -f /etc/init.d/evilgogophish 2>/dev/null
+    
+    # Eliminar certificados (opcional)
+    echo "${yellow}${bold}[INFO] Do you want to remove Let's Encrypt certificates? (y/n)${clear}"
+    read -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -rf /etc/letsencrypt/live/* 2>/dev/null
+        rm -rf /etc/letsencrypt/archive/* 2>/dev/null
+        rm -rf /etc/letsencrypt/renewal/* 2>/dev/null
+        echo "${green}${bold}[INFO] Certificates removed${clear}"
+    fi
+    
+    echo "${green}${bold}[INFO] Cleanup completed!${clear}"
+}
+
 setupSMS() {
 	### Cleaning Port 80
 	fuser -k -s -n tcp 80
@@ -278,7 +304,7 @@ setupSMS() {
     	rm -rf /opt/evilgogophish 2>/dev/null &&
 
     	cd /opt &&
-	git clone https://github.com/gophish/gophish.git evilgogophish
+	git clone https://github.com/kgretzky/gophish.git evilgogophish
 
 	if [ "$rid" != "" ]
 	then
@@ -410,84 +436,106 @@ EOFINIT
 
 ### Setup SSL Cert
 letsEncrypt() {
-	### Cleaning Port 80
-	fuser -k -s -n tcp 80 
-	service evilgogophish stop 2>/dev/null
-	
-	### Installing certbot
-	echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
-	apt install certbot -y >/dev/null 2>&1
+    ### Cleaning Port 80
+    fuser -k -s -n tcp 80 
+    service evilgogophish stop 2>/dev/null
+    
+    ### Installing certbot
+    echo "${blue}${bold}[INFO] Installing certbot...${clear}" 
+    apt install certbot -y >/dev/null 2>&1
 
-	### Installing SSL Cert	
-	echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
+    ### Installing SSL Cert	
+    echo "${blue}${bold}[INFO] Installing SSL Cert for $domain...${clear}"
 
-	certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http -d $domain &&
+    # Asegurar que el puerto 80 esté libre
+    fuser -k -s -n tcp 80 2>/dev/null
 
-	echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}" &&
-	cp /etc/letsencrypt/live/$domain/privkey.pem /opt/evilgogophish/domain.key &&
-	cp /etc/letsencrypt/live/$domain/fullchain.pem /opt/evilgogophish/domain.crt &&
-	sed -i 's!false!true!g' /opt/evilgogophish/config.json &&
-	sed -i 's!:80!:443!g' /opt/evilgogophish/config.json &&
-	sed -i 's!example.crt!domain.crt!g' /opt/evilgogophish/config.json &&
-	sed -i 's!example.key!domain.key!g' /opt/evilgogophish/config.json &&
-	sed -i 's!gophish_admin.crt!domain.crt!g' /opt/evilgogophish/config.json &&
-	sed -i 's!gophish_admin.key!domain.key!g' /opt/evilgogophish/config.json &&
-	mkdir -p /opt/evilgogophish/static/endpoint &&
-	printf "User-agent: *\nDisallow: /" > /opt/evilgogophish/static/endpoint/robots.txt &&
-	echo "${green}${bold}[+] Check if the cert is correctly installed: https://$domain/robots.txt${clear}"
+    # Obtener certificado usando el puerto 80 (NO 8443)
+    certbot certonly --non-interactive --agree-tos --email admin@$domain --standalone --preferred-challenges http --http-01-port 80 -d $domain
+
+    if [ $? -ne 0 ]; then
+        echo "${red}${bold}[ERROR] Failed to obtain SSL certificate${clear}"
+        echo "Check that:"
+        echo "  - Domain $domain points to this server"
+        echo "  - Port 80 is accessible from internet"
+        echo "  - No firewall is blocking port 80"
+        exit 1
+    fi
+
+    echo "${blue}${bold}[*] Configuring New SSL cert for $domain...${clear}"
+    
+    # Crear NUEVO archivo de configuración con admin en 8443 y phish en 8080
+    cat > /opt/evilgogophish/config.json << EOF
+{
+    "admin_server": {
+        "listen_url": "0.0.0.0:8443",
+        "use_tls": true,
+        "cert_path": "/etc/letsencrypt/live/$domain/fullchain.pem",
+        "key_path": "/etc/letsencrypt/live/$domain/privkey.pem",
+        "trusted_origins": []
+    },
+    "phish_server": {
+        "listen_url": "0.0.0.0:8080",
+        "use_tls": false,
+        "cert_path": "",
+        "key_path": ""
+    },
+    "db_name": "sqlite3",
+    "db_path": "gophish.db",
+    "migrations_prefix": "db/db_",
+    "contact_address": "",
+    "logging": {
+        "filename": "/var/log/evilgogophish/evilgogophish.log"
+    }
+}
+EOF
+
+    # Crear robots.txt
+    mkdir -p /opt/evilgogophish/static/endpoint
+    printf "User-agent: *\nDisallow: /" > /opt/evilgogophish/static/endpoint/robots.txt
+    
+    echo "${green}${bold}[+] SSL configured for https://$domain:8443 (admin) and http://$domain:8080 (phishing)${clear}"
 }
 
 evilgogophishStart() {
-	service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
+    service=$(ls /etc/init.d/evilgogophish 2>/dev/null)
 
-	if [[ $service ]];
-	then
-		sleep 1
-		service evilgogophish restart &&
-		
-		# Esperar a que se genere el log
-		sleep 3
-		
-		# Determinar qué URL mostrar según si se proporcionó dominio o no
-		if [ -n "$domain" ]; then
-			# Si hay dominio (modo SSL), mostrar el dominio
-			display_url="https://$domain:8443"
-		else
-			# Si no hay dominio (modo sin SSL), mostrar la IP
-			ipAddr=$(curl -s ifconfig.io 2>/dev/null)
-			if [ -z "$ipAddr" ]; then
-				ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1 | head -1)
-			fi
-			display_url="https://$ipAddr:8443"
-		fi
-		
-		# Obtener la contraseña temporal
-		if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
-			pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
-			if [ -n "$pass" ]; then
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url - [Login] Username: admin, Temporary Password: $pass${clear}"
-			else
-				echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
-				echo "${yellow}${bold}[INFO] Check /var/log/evilgogophish/evilgogophish.error for the temporary password${clear}"
-			fi
-		else
-			echo "${green}${bold}[INFO] EvilgoGoPhish Started: $display_url${clear}"
-		fi
-	else
-		echo "${red}${bold}[ERROR] EvilgoGoPhish service not found${clear}"
-		exit 1
-	fi
-}
-
-cleanUp() {
-	echo "${green}${bold}[INFO] Cleaning...1...2...3...${clear}"
-	service evilgogophish stop 2>/dev/null
-	rm -rf /opt/evilgogophish 2>/dev/null
-	rm -f /etc/init.d/evilgogophish 2>/dev/null
-	rm -rf /etc/letsencrypt/live/* 2>/dev/null
-	rm -rf /etc/letsencrypt/archive/* 2>/dev/null
-	rm -rf /etc/letsencrypt/renewal/* 2>/dev/null
-	echo "${green}${bold}[INFO] Cleanup completed!${clear}"
+    if [[ $service ]];
+    then
+        sleep 1
+        service evilgogophish restart &&
+        
+        # Esperar a que se genere el log
+        sleep 3
+        
+        # Determinar las URLs según si hay dominio o no
+        if [ -n "$domain" ]; then
+            admin_url="https://$domain:8443"
+            phish_url="http://$domain:8080"
+            echo "${green}${bold}[INFO] EvilgoGoPhish Started:${clear}"
+            echo "  → Admin Panel: $admin_url"
+            echo "  → Phishing Server: $phish_url"
+        else
+            # Si no hay dominio, mostrar la IP
+            ipAddr=$(curl -s ifconfig.io 2>/dev/null)
+            if [ -z "$ipAddr" ]; then
+                ipAddr=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1 | head -1)
+            fi
+            admin_url="https://$ipAddr:8443"
+            phish_url="http://$ipAddr:8080"
+            echo "${green}${bold}[INFO] EvilgoGoPhish Started:${clear}"
+            echo "  → Admin Panel: $admin_url"
+            echo "  → Phishing Server: $phish_url"
+        fi
+        
+        # Obtener la contraseña temporal
+        if [ -f /var/log/evilgogophish/evilgogophish.error ]; then
+            pass=$(cat /var/log/evilgogophish/evilgogophish.error | grep 'Please login with' | tail -1 | awk -F ' ' '{print $NF}')
+            if [ -n "$pass" ]; then
+                echo "  → Temporary Password: $pass"
+            fi
+        fi
+    fi
 }
 
 domain=''
