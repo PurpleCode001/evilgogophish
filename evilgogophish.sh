@@ -7,10 +7,17 @@
 # Description     : Automated script to install EvilgoGoPhish and configure SSL certificate with certbot, compatible with Evilginx 3.3.0+
 # Release Note    : 
 	03/12/26:
-		- Updated to EvilgoGoPhish v1.1 - Bait version
+		- Updated to EvilgoGoPhish v1.0
 		- Changed default port from 3333 to 8443
+		- The Gophish repository was switched to kgretzky's version.
+		- 
 		- Install ultimate version go with snap
 		- Updated author information
+	xx/xx/26:
+	- Updated to EvilgoGoPhish v1.1 - Bait Version
+	- Add script bait.sh for install dependencies foor Evilginx 3.3+ and Gophish
+	- Script bait.sh configure ufw firewall for all port needs
+	
 	  
 com
 
