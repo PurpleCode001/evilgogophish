@@ -10,7 +10,6 @@
 		- Updated to EvilgoGoPhish v1.0
 		- Changed default port from 3333 to 8443
 		- The Gophish repository was switched to kgretzky's version.
-		- 
 		- Install ultimate version go with snap
 		- Updated author information
 	xx/xx/26:
